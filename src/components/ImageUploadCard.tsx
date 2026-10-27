@@ -1,5 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { Upload, X, Replace, FileImage, AlertCircle, Camera } from 'lucide-react';
+import { CameraModal } from './CameraModal';
 
 interface ImageUploadCardProps {
   label: string;
@@ -27,8 +28,8 @@ export const ImageUploadCard: React.FC<ImageUploadCardProps> = ({
   onRemove,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,15 +105,6 @@ export const ImageUploadCard: React.FC<ImageUploadCardProps> = ({
               className="hidden"
               aria-label={`Choose file for ${label}`}
             />
-            <input
-              ref={cameraInputRef}
-              type="file"
-              accept="image/*"
-              capture="user"
-              onChange={handleFileChange}
-              className="hidden"
-              aria-label={`Take selfie for ${label}`}
-            />
 
             <div className={`w-12 h-12 mx-auto rounded-full ${personId === 'A' ? 'bg-indigo-100' : 'bg-violet-100'} flex items-center justify-center mb-3`}>
               <Upload className={`w-6 h-6 ${personId === 'A' ? 'text-indigo-500' : 'text-violet-500'}`} />
@@ -121,23 +113,30 @@ export const ImageUploadCard: React.FC<ImageUploadCardProps> = ({
             <p className="text-sm font-medium text-gray-700 mb-1">
               {isDragOver ? 'Drop your image here' : `Upload Photo ${personId}`}
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 mb-3">
               Drag & drop or click to browse
             </p>
-            <div className="mt-3 flex items-center justify-center">
+
+            {/* Direct Live Camera button */}
+            <div className="flex items-center justify-center">
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  cameraInputRef.current?.click();
+                  setIsCameraOpen(true);
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-100"
+                className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold ${
+                  personId === 'A'
+                    ? 'text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200'
+                    : 'text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200'
+                } rounded-xl transition-all shadow-xs hover:shadow-sm`}
               >
-                <Camera className="w-3.5 h-3.5" />
+                <Camera className="w-4 h-4" />
                 Take Selfie (Camera)
               </button>
             </div>
-            <p className="text-xs text-gray-400 mt-2">
+
+            <p className="text-xs text-gray-400 mt-3">
               JPG, PNG, WEBP • Max 10 MB
             </p>
 
@@ -170,18 +169,27 @@ export const ImageUploadCard: React.FC<ImageUploadCardProps> = ({
 
             <div className="flex gap-2">
               <button
+                type="button"
+                onClick={() => setIsCameraOpen(true)}
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                <Camera className="w-4 h-4" />
+                Retake
+              </button>
+              <button
+                type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 <Replace className="w-4 h-4" />
                 Replace
               </button>
               <button
+                type="button"
                 onClick={onRemove}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
               >
                 <X className="w-4 h-4" />
-                Remove
               </button>
             </div>
 
@@ -202,6 +210,14 @@ export const ImageUploadCard: React.FC<ImageUploadCardProps> = ({
             <span>{error}</span>
           </div>
         )}
+
+        {/* Live Camera Viewfinder Modal */}
+        <CameraModal
+          isOpen={isCameraOpen}
+          onClose={() => setIsCameraOpen(false)}
+          onCapture={onUpload}
+          personLabel={label}
+        />
       </div>
     </div>
   );
